@@ -1,0 +1,36 @@
+# n8n-nodes-pdfkit Project Information
+
+## Project Overview
+- This is an n8n community node package that provides PDF creation functionality using PDFKit
+- Current version: 0.1.3
+- Main functionality: 
+  1. Convert images to PDF
+  2. Merge PDF documents
+- Author: Bram Knuever
+
+## Project Structure
+- Main implementation: nodes/PdfKit/PdfKit.node.ts
+- Only one node implemented: PdfKit
+- Dependencies: pdfkit, image-size, pdf-merger-js
+
+## Key Features
+- Can convert images to PDF
+- Can merge two PDF documents into one
+- Options to keep or discard original images/PDFs
+- Each item in n8n workflow can be processed
+
+## Development Details
+- TypeScript project
+- Uses n8n workflow and core libraries
+- Build process: tsc + gulp for icon copying
+
+## Prime Directive
+- Understand the codebase thoroughly before making changes
+- Follow project conventions and coding style
+- Test thoroughly before submitting changes
+- Document any new functionality or changes
+
+## Recent Changes
+- Added PDF merge functionality using pdf-merger-js library
+- Updated version to 0.1.3
+- Enhanced documentation to reflect new capabilities 

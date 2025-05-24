@@ -1,19 +1,19 @@
 {
   "name": "n8n-nodes-pdfkit",
-  "version": "0.1.2",
-  "description": "Node for using PDFKit to tranform images into PDF, more functionality may be added later.",
+  "version": "0.1.3",
+  "description": "Node for using PDFKit to transform images into PDF and merge PDFs.",
   "keywords": [
     "n8n-community-node-package"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/bramkn/n8n-nodes-pdfkit.git",
+  "homepage": "https://github.com/cntrlx/n8n-nodes-pdfkit.git",
   "author": {
-    "name": "Bram Knuever",
-    "email": "bram@knitco.nl"
+    "name": "Nihal anil",
+    "email": "dicor577@gmail.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/bramkn/n8n-nodes-pdfkit.git"
+    "url": "https://github.com/cntrlx/n8n-nodes-pdfkit.git"
   },
   "main": "index.js",
   "scripts": {
@@ -48,6 +48,7 @@
   "dependencies": {
     "eslint": "^8.40.0",
     "image-size": "^1.0.2",
+    "pdf-merger-js": "^5.1.2",
     "pdfkit": "^0.13.0"
   }
 }
