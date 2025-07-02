@@ -9,6 +9,10 @@ import {
 const PDFDocument = require('pdfkit');
 var sizeOf = require('image-size');
 const PDFMerger = require('pdf-merger-js');
+const Poppler = require('pdf-poppler');
+import * as fs from 'fs/promises';
+import * as os from 'os';
+import * as path from 'path';
 
 export class PdfKit implements INodeType {
 	description: INodeTypeDescription = {
@@ -35,12 +39,16 @@ export class PdfKit implements INodeType {
 						name:'Convert Images To PDF',
 						value:'imagesToPDF'
 					},
-					{
-						name:'Merge PDFs',
-						value:'mergePDFs'
-					}
-				],
-			},
+                                        {
+                                                name:'Merge PDFs',
+                                                value:'mergePDFs'
+                                        },
+                                        {
+                                                name:'PDF to Images',
+                                                value:'pdfToImages'
+                                        }
+                                ],
+                        },
 			// Fields for imagesToPDF operation
 			{
 				displayName: 'Destination Key',
@@ -74,21 +82,66 @@ export class PdfKit implements INodeType {
 					},
 				},
 			},
-			{
-				displayName: 'Keep Images',
-				name: 'keepImages',
-				type: 'boolean',
-				default: false,
-				description: 'Whether to keep images that were used in the PDF',
-				displayOptions: {
-					show: {
-						operation: [
-							'imagesToPDF',
-						],
-					},
-				},
-			},
-			// Fields for mergePDFs operation
+                        {
+                                displayName: 'Keep Images',
+                                name: 'keepImages',
+                                type: 'boolean',
+                                default: false,
+                                description: 'Whether to keep images that were used in the PDF',
+                                displayOptions: {
+                                        show: {
+                                                operation: [
+                                                        'imagesToPDF',
+                                                ],
+                                        },
+                                },
+                        },
+                        // Fields for pdfToImages operation
+                        {
+                                displayName: 'PDF Binary Field',
+                                name: 'pdfField',
+                                type: 'string',
+                                default: '',
+                                required: true,
+                                description: 'The binary field containing the PDF to split',
+                                displayOptions: {
+                                        show: {
+                                                operation: [
+                                                        'pdfToImages',
+                                                ],
+                                        },
+                                },
+                        },
+                        {
+                                displayName: 'Output Prefix',
+                                name: 'outputPrefix',
+                                type: 'string',
+                                default: 'page',
+                                required: true,
+                                description: 'Prefix for the binary keys of the output images',
+                                displayOptions: {
+                                        show: {
+                                                operation: [
+                                                        'pdfToImages',
+                                                ],
+                                        },
+                                },
+                        },
+                        {
+                                displayName: 'Keep Source PDF',
+                                name: 'keepSourcePdf',
+                                type: 'boolean',
+                                default: false,
+                                description: 'Whether to keep the PDF file after splitting',
+                                displayOptions: {
+                                        show: {
+                                                operation: [
+                                                        'pdfToImages',
+                                                ],
+                                        },
+                                },
+                        },
+                        // Fields for mergePDFs operation
 			{
 				displayName: 'First PDF Binary Field',
 				name: 'firstPdfField',
@@ -153,9 +206,9 @@ export class PdfKit implements INodeType {
 				}
 
 				// Handle different operations
-				if (operation === 'imagesToPDF') {
-					// Original imagesToPDF operation
-					const keepImages = this.getNodeParameter('keepImages', itemIndex, false) as boolean;
+                                if (operation === 'imagesToPDF') {
+                                        // Original imagesToPDF operation
+                                        const keepImages = this.getNodeParameter('keepImages', itemIndex, false) as boolean;
 					
 					let doc;
 					for (var [index,key] of Object.keys(item.binary).entries()){
@@ -179,7 +232,40 @@ export class PdfKit implements INodeType {
 					doc.end();
 					item.binary![outputKey] = await this.helpers.prepareBinaryData(doc, `${outputName}.pdf`);
 				
-				} else if (operation === 'mergePDFs') {
+                                } else if (operation === 'pdfToImages') {
+                                        const pdfField = this.getNodeParameter('pdfField', itemIndex, '') as string;
+                                        const outputPrefix = this.getNodeParameter('outputPrefix', itemIndex, 'page') as string;
+                                        const keepSourcePdf = this.getNodeParameter('keepSourcePdf', itemIndex, false) as boolean;
+
+                                        if (!item.binary[pdfField]) {
+                                                throw new NodeOperationError(this.getNode(), `PDF field "${pdfField}" does not exist on item!`);
+                                        }
+
+                                        const pdfBuffer = await this.helpers.getBinaryDataBuffer(itemIndex, pdfField);
+
+                                        const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'pdfsplit-'));
+                                        const inputPath = path.join(tmpDir, 'input.pdf');
+                                        await fs.writeFile(inputPath, pdfBuffer);
+
+                                        const opts = { format: 'png', out_dir: tmpDir, out_prefix: outputPrefix, page: null };
+                                        await Poppler.convert(inputPath, opts);
+
+                                        const files = await fs.readdir(tmpDir);
+                                        const imageFiles = files.filter((f: string) => f.startsWith(outputPrefix));
+
+                                        for (const [index, file] of imageFiles.entries()) {
+                                                const data = await fs.readFile(path.join(tmpDir, file));
+                                                const key = `${outputPrefix}${index + 1}`;
+                                                item.binary![key] = await this.helpers.prepareBinaryData(data, file, 'image/png');
+                                        }
+
+                                        await fs.rm(tmpDir, { recursive: true, force: true });
+
+                                        if (!keepSourcePdf) {
+                                                delete item.binary[pdfField];
+                                        }
+
+                                } else if (operation === 'mergePDFs') {
 					// New mergePDFs operation
 					const firstPdfField = this.getNodeParameter('firstPdfField', itemIndex, '') as string;
 					const secondPdfField = this.getNodeParameter('secondPdfField', itemIndex, '') as string;

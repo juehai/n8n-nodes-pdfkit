@@ -11,6 +11,9 @@ Convert all images on a single item to a PDF. This will be done for each item in
 ## Merge PDFs
 Merge two PDF documents into a single PDF. Specify the binary fields containing the PDFs to merge and configure the output.
 
+## Split PDF to Images
+Convert each page in a PDF document to a separate image. Define the binary field containing the PDF and configure the prefix for the generated images.
+
 ## License
 
 [MIT](https://github.com/n8n-io/n8n-nodes-starter/blob/master/LICENSE.md)
