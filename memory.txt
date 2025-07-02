@@ -2,20 +2,22 @@
 
 ## Project Overview
 - This is an n8n community node package that provides PDF creation functionality using PDFKit
-- Current version: 0.1.3
+- Current version: 0.1.4
 - Main functionality: 
   1. Convert images to PDF
   2. Merge PDF documents
+  3. Split PDF into images
 - Author: Bram Knuever
 
 ## Project Structure
 - Main implementation: nodes/PdfKit/PdfKit.node.ts
 - Only one node implemented: PdfKit
-- Dependencies: pdfkit, image-size, pdf-merger-js
+- Dependencies: pdfkit, image-size, pdf-merger-js, pdf-poppler
 
 ## Key Features
 - Can convert images to PDF
 - Can merge two PDF documents into one
+- Can split a PDF into images
 - Options to keep or discard original images/PDFs
 - Each item in n8n workflow can be processed
 
@@ -32,5 +34,6 @@
 
 ## Recent Changes
 - Added PDF merge functionality using pdf-merger-js library
-- Updated version to 0.1.3
-- Enhanced documentation to reflect new capabilities 
+- Added ability to split a PDF into images using pdf-poppler
+- Updated version to 0.1.4
+- Enhanced documentation to reflect new capabilities
